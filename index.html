@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema de Cadastro – Controle Interno</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0d6efd;
+      --dark: #1a1f36;
+      --light: #f8f9fa;
+      --success: #198754;
+      --danger: #dc3545;
+      --warning: #ffc107;
+    }
+    body {
+      background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+    .container { max-width: 1180px; }
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .card-header {
+      border-radius: 16px 16px 0 0;
+      font-weight: 600;
+    }
+    .nav-tabs .nav-link {
+      border: none;
+      border-radius: 10px 10px 0 0;
+      padding: 12px 24px;
+      font-weight: 500;
+      color: #495057;
+    }
+    .nav-tabs .nav-link.active {
+      background: var(--primary);
+      color: white;
+      border-bottom: 4px solid #0b5ed7;
+    }
+    .form-label { font-weight: 500; color: #2c3e50; }
+    .foto-mini {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid #dee2e6;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .foto-mini:hover { transform: scale(1.15); }
+    .foto-perfil {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 5px solid var(--primary);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    .status-ativo   { color: var(--success);  font-weight: 700; }
+    .status-inativo { color: var(--danger);   font-weight: 700; }
+    #relatorioTexto { min-height: 320px; font-family: 'Consolas', monospace; font-size: 0.95rem; }
+    tr.registro:hover { background-color: #f1f3f5; cursor: pointer; }
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container mt-5">
+  <h1 class="text-center mb-5 fw-bold text-dark">Controle de Cadastros</h1>
+
+  <ul class="nav nav-tabs mb-4 justify-content-center" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="colaborador-tab" data-bs-toggle="tab" data-bs-target="#colaborador" type="button" role="tab">Novo Cadastro</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin" type="button" role="tab">Administração</button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="myTabContent">
+
+    <!-- ── Aba Cadastro (usuário comum) ─────────────────────────────── -->
+    <div class="tab-pane fade show active" id="colaborador" role="tabpanel">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Cadastro de Colaborador</h5>
+        </div>
+        <div class="card-body p-4">
+          <div id="msg-colaborador" class="alert d-none"></div>
+
+          <form id="formCadastro">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="nome" class="form-label">Nome completo *</label>
+                <input type="text" class="form-control" id="nome" name="nome" required placeholder="Ex: João da Silva">
+              </div>
+
+              <div class="col-md-6">
+                <label for="cpf" class="form-label">CPF</label>
+                <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14">
+              </div>
+
+              <div class="col-md-6">
+                <label for="pix" class="form-label">Chave PIX</label>
+                <input type="text" class="form-control" id="pix" name="pix" placeholder="exemplo@email.com / (11) 99999-9999">
+              </div>
+
+              <div class="col-md-6">
+                <label for="dob" class="form-label">Data de nascimento</label>
+                <input type="date" class="form-control" id="dob" name="dob">
+              </div>
+
+              <div class="col-md-6">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="seuemail@empresa.com">
+              </div>
+
+              <div class="col-12">
+                <label for="telefone" class="form-label">Telefone / WhatsApp</label>
+                <input type="tel" class="form-control" id="telefone" name="telefone" placeholder="(11) 99999-9999">
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Foto Facial (Selfie) * <small class="text-danger">(obrigatória)</small></label>
+                <div class="mb-3 text-center">
+                  <video id="videoPreview" autoplay playsinline muted class="rounded shadow-sm w-100" style="max-height:260px;"></video>
+                </div>
+                <div class="btn-group d-flex justify-content-center gap-2 flex-wrap">
+                  <button type="button" class="btn btn-outline-primary" id="btnIniciarCamera">
+                    <i class="fa fa-camera me-1"></i> Iniciar Câmera
+                  </button>
+                  <button type="button" class="btn btn-success" id="btnCapturarFoto" disabled>
+                    <i class="fa fa-check me-1"></i> Capturar
+                  </button>
+                  <button type="button" class="btn btn-outline-danger" id="btnRemoverFoto" disabled>
+                    <i class="fa fa-trash me-1"></i> Remover
+                  </button>
+                </div>
+                <div id="fotoContainer" class="mt-4 d-none text-center">
+                  <img id="fotoPreview" alt="Foto capturada" class="shadow">
+                  <input type="hidden" id="fotoBase64" name="foto">
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 mt-4 py-3 fw-bold" id="btnFinalizarCadastro">
+              <i class="fa fa-paper-plane me-2"></i> Finalizar Cadastro
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Aba Administração ─────────────────────────────────────────── -->
+    <div class="tab-pane fade" id="admin" role="tabpanel">
+      <div class="card" id="admin-content" style="display:none;">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Painel Administrativo</h5>
+          <button class="btn btn-outline-light btn-sm" id="btn-logoff">
+            <i class="fa fa-sign-out-alt me-1"></i> Sair (Logoff)
+          </button>
+        </div>
+
+        <div class="card-body p-4">
+
+          <h5 class="mb-3">Registros Cadastrados</h5>
+
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle" id="tabelaRegistros">
+              <thead class="table-dark">
+                <tr>
+                  <th><input type="checkbox" id="select-all"></th>
+                  <th>#</th>
+                  <th>Foto</th>
+                  <th>Nome</th>
+                  <th>Setor</th>
+                  <th>Status</th>
+                  <th>CPF</th>
+                  <th>PIX</th>
+                  <th>Data Cad.</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-registros"></tbody>
+            </table>
+          </div>
+
+          <div class="mt-4 d-flex gap-3 flex-wrap">
+            <button id="btn-inativar-selecionados" class="btn btn-warning">
+              <i class="fa fa-user-slash me-2"></i> Inativar Selecionados
+            </button>
+
+            <button id="btn-gerar-relatorio" class="btn btn-success">
+              <i class="fa fa-file-lines me-2"></i> Gerar Relatório
+            </button>
+
+            <button id="btn-enviar-whatsapp" class="btn btn-success bg-success-subtle text-success border-success">
+              <i class="fa-brands fa-whatsapp me-2 fs-5"></i> Enviar por WhatsApp
+            </button>
+
+            <button id="btn-limpar-tudo" class="btn btn-outline-danger ms-auto">
+              <i class="fa fa-trash-can me-2"></i> Excluir Todos
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal Login Admin -->
+<div class="modal fade" id="modalAuth" tabindex="-1" aria-labelledby="modalAuthLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body p-4">
+        <h4 class="login-title text-center mb-4">Acesso Administrativo</h4>
+        <div class="mb-3">
+          <label for="senhaAdmin" class="form-label">Senha de acesso</label>
+          <input type="password" class="form-control form-control-lg" id="senhaAdmin" placeholder="••••••••">
+        </div>
+        <div id="msg-auth" class="alert alert-danger d-none mt-3"></div>
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4 pt-0">
+        <button type="button" class="btn btn-lg btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-lg btn-primary px-5" id="btn-autenticar">Entrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalhes -->
+<div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalDetalhesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detalhes do Colaborador</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modalFoto" class="foto-perfil mb-4" alt="Foto" src="">
+        <div class="row g-3 text-start">
+          <div class="col-12"><strong>Nome:</strong> <span id="modalNome"></span></div>
+          <div class="col-md-6"><strong>Setor:</strong> <span id="modalSetor"></span></div>
+          <div class="col-md-6"><strong>Status:</strong> <span id="modalStatus"></span></div>
+          <div class="col-md-6"><strong>CPF:</strong> <span id="modalCpf"></span></div>
+          <div class="col-md-6"><strong>PIX:</strong> <span id="modalPix"></span></div>
+          <div class="col-md-6"><strong>Nascimento:</strong> <span id="modalDob"></span></div>
+          <div class="col-md-6"><strong>E-mail:</strong> <span id="modalEmail"></span></div>
+          <div class="col-md-6"><strong>Telefone:</strong> <span id="modalTelefone"></span></div>
+          <div class="col-12"><strong>Data Cadastro:</strong> <span id="modalDataCad"></span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Relatório -->
+<div class="modal fade" id="modalRelatorio" tabindex="-1" aria-labelledby="modalRelatorioLabel">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Relatório de Cadastros</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <textarea class="form-control" id="relatorioTexto" readonly></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// =============================================
+// Configuração e Estado
+// =============================================
+const ADMIN_SENHA = "admin123"; // ← MUDE EM PRODUÇÃO!
+let isAdminAuthenticated = false;
+let videoStream = null;
+
+// Elementos câmera
+const video               = document.getElementById('videoPreview');
+const btnIniciar          = document.getElementById('btnIniciarCamera');
+const btnCapturar         = document.getElementById('btnCapturarFoto');
+const btnRemover          = document.getElementById('btnRemoverFoto');
+const fotoPreview         = document.getElementById('fotoPreview');
+const fotoBase64Input     = document.getElementById('fotoBase64');
+const fotoContainer       = document.getElementById('fotoContainer');
+const btnFinalizarCadastro = document.getElementById('btnFinalizarCadastro');
+
+// =============================================
+// Câmera
+// =============================================
+async function iniciarCamera() {
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+    video.srcObject = videoStream;
+    btnCapturar.disabled = false;
+    btnIniciar.disabled = true;
+  } catch (err) {
+    alert("Erro ao acessar a câmera:\n" + err.message);
+  }
+}
+
+function capturarFoto() {
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const base64 = canvas.toDataURL('image/jpeg', 0.78);
+  fotoPreview.src = base64;
+  fotoBase64Input.value = base64;
+  fotoContainer.classList.remove('d-none');
+  btnRemover.disabled = false;
+  verificarSePodeFinalizar();
+}
+
+function removerFoto() {
+  fotoPreview.src = '';
+  fotoBase64Input.value = '';
+  fotoContainer.classList.add('d-none');
+  btnRemover.disabled = true;
+  verificarSePodeFinalizar();
+}
+
+btnIniciar.onclick   = iniciarCamera;
+btnCapturar.onclick  = capturarFoto;
+btnRemover.onclick   = removerFoto;
+
+// =============================================
+// Validação – selfie obrigatória
+// =============================================
+function verificarSePodeFinalizar() {
+  const temFoto = !!fotoBase64Input.value.trim();
+  btnFinalizarCadastro.disabled = !temFoto;
+  btnFinalizarCadastro.title = temFoto ? "" : "É obrigatória a captura da foto facial";
+}
+
+video.addEventListener('play', verificarSePodeFinalizar);
+
+// =============================================
+// Funções auxiliares
+// =============================================
+function mostrarMensagem(elId, texto, tipo = "success") {
+  const el = document.getElementById(elId);
+  el.innerHTML = texto;
+  el.className = `alert alert-${tipo} mt-3`;
+  el.classList.remove('d-none');
+  setTimeout(() => el.classList.add('d-none'), 5000);
+}
+
+function getRegistros() {
+  return JSON.parse(localStorage.getItem("registros") || "[]");
+}
+
+function salvarRegistros(regs) {
+  localStorage.setItem("registros", JSON.stringify(regs));
+}
+
+function renderizarRegistros() {
+  const tbody = document.getElementById("tabela-registros");
+  tbody.innerHTML = "";
+  const registros = getRegistros();
+
+  registros.forEach((reg, idx) => {
+    const foto = reg.foto ? `<img src="${reg.foto}" class="foto-mini" alt="Foto">` : "—";
+    const statusClass = reg.status === "inativo" ? "status-inativo" : "status-ativo";
+    const statusText  = reg.status === "inativo" ? "Inativo" : "Ativo";
+
+    const tr = document.createElement("tr");
+    tr.className = "registro";
+    tr.dataset.index = idx;
+    tr.innerHTML = `
+      <td><input type="checkbox" class="select-reg" data-index="${idx}"></td>
+      <td>${idx+1}</td>
+      <td>${foto}</td>
+      <td>${reg.nome || "—"}</td>
+      <td>
+        <select class="form-select form-select-sm setor-select" data-index="${idx}">
+          <option value="" ${!reg.setor ? 'selected' : ''}>—</option>
+          <option value="CDC"   ${reg.setor === "CDC"   ? 'selected' : ''}>CDC</option>
+          <option value="RDC"   ${reg.setor === "RDC"   ? 'selected' : ''}>RDC</option>
+          <option value="Insumo" ${reg.setor === "Insumo" ? 'selected' : ''}>Insumo</option>
+        </select>
+      </td>
+      <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+      <td>${reg.cpf || "—"}</td>
+      <td>${reg.pix || "—"}</td>
+      <td>${reg.dataCadastro?.split(',')[0] || "—"}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-danger" onclick="excluirRegistro(${idx}); event.stopPropagation();">
+          Excluir
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Clique na linha → detalhes
+  document.querySelectorAll('#tabela-registros tr.registro').forEach(tr => {
+    tr.addEventListener('click', e => {
+      if (e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+      const idx = tr.dataset.index;
+      abrirModalDetalhes(idx);
+    });
+  });
+
+  // Alteração de setor
+  document.querySelectorAll('.setor-select').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const idx = e.target.dataset.index;
+      const novoSetor = e.target.value;
+      let regs = getRegistros();
+      regs[idx].setor = novoSetor || undefined;
+      salvarRegistros(regs);
+    });
+  });
+
+  // Select All
+  document.getElementById("select-all").onclick = e => {
+    document.querySelectorAll(".select-reg").forEach(cb => cb.checked = e.target.checked);
+  };
+}
+
+function abrirModalDetalhes(index) {
+  const regs = getRegistros();
+  const reg = regs[index];
+  if (!reg) return;
+
+  document.getElementById("modalFoto").src = reg.foto || "https://via.placeholder.com/180?text=Sem+Foto";
+  document.getElementById("modalNome").textContent     = reg.nome || "—";
+  document.getElementById("modalSetor").textContent    = reg.setor || "—";
+  document.getElementById("modalStatus").innerHTML     = reg.status === "inativo"
+    ? '<span class="text-danger fw-bold">Inativo</span>'
+    : '<span class="text-success fw-bold">Ativo</span>';
+  document.getElementById("modalCpf").textContent      = reg.cpf || "—";
+  document.getElementById("modalPix").textContent      = reg.pix || "—";
+  document.getElementById("modalDob").textContent      = reg.dob || "—";
+  document.getElementById("modalEmail").textContent    = reg.email || "—";
+  document.getElementById("modalTelefone").textContent = reg.telefone || "—";
+  document.getElementById("modalDataCad").textContent  = reg.dataCadastro || "—";
+
+  new bootstrap.Modal(document.getElementById("modalDetalhes")).show();
+}
+
+function excluirRegistro(index) {
+  if (!confirm("Excluir este cadastro?")) return;
+  let regs = getRegistros();
+  regs.splice(index, 1);
+  salvarRegistros(regs);
+  renderizarRegistros();
+}
+
+function inativarSelecionados() {
+  const checkboxes = document.querySelectorAll(".select-reg:checked");
+  if (!checkboxes.length) return alert("Nenhum registro selecionado.");
+
+  if (!confirm(`Inativar ${checkboxes.length} registro(s)?`)) return;
+
+  let regs = getRegistros();
+  checkboxes.forEach(cb => {
+    const idx = parseInt(cb.dataset.index);
+    if (regs[idx]) regs[idx].status = "inativo";
+  });
+  salvarRegistros(regs);
+  renderizarRegistros();
+  alert("Registros selecionados foram inativados.");
+}
+
+function gerarTextoRelatorio() {
+  const regs = getRegistros();
+  if (!regs.length) return "Nenhum cadastro registrado ainda.";
+
+  let txt = `RELATÓRIO DE CADASTROS\n`;
+  txt += `Gerado em: ${new Date().toLocaleString("pt-BR")}\n`;
+  txt += "=".repeat(70) + "\n\n";
+
+  regs.forEach((r, i) => {
+    txt += `REGISTRO #${i+1}\n`;
+    txt += `Data: ${r.dataCadastro}\n`;
+    txt += `Status: ${r.status === "inativo" ? "INATIVO" : "ATIVO"}\n`;
+    txt += `Nome:   ${r.nome   || "—"}\n`;
+    txt += `Setor:  ${r.setor  || "—"}\n`;
+    txt += `CPF:    ${r.cpf    || "—"}\n`;
+    txt += `PIX:    ${r.pix    || "—"}\n`;
+    txt += `Nasc:   ${r.dob    || "—"}\n`;
+    txt += `E-mail: ${r.email  || "—"}\n`;
+    txt += `Fone:   ${r.telefone || "—"}\n`;
+    txt += `Foto:   ${r.foto ? "(capturada)" : "—"}\n`;
+    txt += "-".repeat(60) + "\n\n";
+  });
+
+  return txt;
+}
+
+// =============================================
+// Eventos
+// =============================================
+document.getElementById("formCadastro").addEventListener("submit", e => {
+  e.preventDefault();
+
+  if (!fotoBase64Input.value.trim()) {
+    mostrarMensagem("msg-colaborador", "A foto facial (selfie) é obrigatória.", "danger");
+    return;
+  }
+
+  const formData = new FormData(e.target);
+  const dados = {
+    nome:      formData.get("nome")?.trim(),
+    cpf:       formData.get("cpf")?.trim(),
+    pix:       formData.get("pix")?.trim(),
+    dob:       formData.get("dob"),
+    email:     formData.get("email")?.trim(),
+    telefone:  formData.get("telefone")?.trim(),
+    foto:      fotoBase64Input.value,
+    status:    "ativo",
+    dataCadastro: new Date().toLocaleString("pt-BR")
+  };
+
+  if (!dados.nome) {
+    mostrarMensagem("msg-colaborador", "O nome completo é obrigatório.", "danger");
+    return;
+  }
+
+  let registros = getRegistros();
+  registros.push(dados);
+  salvarRegistros(registros);
+
+  e.target.reset();
+  removerFoto();
+  if (videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    video.srcObject = null;
+    btnCapturar.disabled = true;
+    btnIniciar.disabled = false;
+  }
+
+  verificarSePodeFinalizar();
+  mostrarMensagem("msg-colaborador", "Cadastro realizado com sucesso!", "success");
+
+  if (isAdminAuthenticated) renderizarRegistros();
+});
+
+// Admin tab
+document.getElementById("admin-tab").onclick = () => {
+  if (!isAdminAuthenticated) {
+    new bootstrap.Modal(document.getElementById("modalAuth")).show();
+  } else {
+    document.getElementById("admin-content").style.display = "block";
+    renderizarRegistros();
+  }
+};
+
+// Login admin
+document.getElementById("btn-autenticar").onclick = () => {
+  const senha = document.getElementById("senhaAdmin").value;
+  const msg = document.getElementById("msg-auth");
+
+  if (senha === ADMIN_SENHA) {
+    isAdminAuthenticated = true;
+    bootstrap.Modal.getInstance(document.getElementById("modalAuth")).hide();
+    document.getElementById("admin-content").style.display = "block";
+    renderizarRegistros();
+    document.getElementById("senhaAdmin").value = "";
+    msg.classList.add("d-none");
+  } else {
+    msg.textContent = "Senha incorreta.";
+    msg.classList.remove("d-none");
+  }
+};
+
+// Logoff
+document.getElementById("btn-logoff").onclick = () => {
+  if (!confirm("Deseja realmente sair do modo administrador?")) return;
+  isAdminAuthenticated = false;
+  document.getElementById("admin-content").style.display = "none";
+  document.getElementById("admin-tab").classList.remove("active");
+  document.getElementById("colaborador-tab").classList.add("active");
+  document.getElementById("colaborador").classList.add("show", "active");
+  document.getElementById("admin").classList.remove("show", "active");
+};
+
+// Inativar selecionados
+document.getElementById("btn-inativar-selecionados").onclick = inativarSelecionados;
+
+// Relatório
+document.getElementById("btn-gerar-relatorio").onclick = () => {
+  document.getElementById("relatorioTexto").value = gerarTextoRelatorio();
+  new bootstrap.Modal(document.getElementById("modalRelatorio")).show();
+};
+
+// WhatsApp
+document.getElementById("btn-enviar-whatsapp").onclick = () => {
+  const texto = gerarTextoRelatorio();
+  const encoded = encodeURIComponent(texto);
+  window.open(`https://wa.me/?text=${encoded}`, "_blank");
+};
+
+// Limpar tudo
+document.getElementById("btn-limpar-tudo").onclick = () => {
+  if (!confirm("Excluir TODOS os cadastros?\nAção irreversível.")) return;
+  localStorage.removeItem("registros");
+  renderizarRegistros();
+  alert("Todos os registros foram excluídos.");
+};
+
+// Inicialização
+verificarSePodeFinalizar();
+</script>
+</body>
+</html>
